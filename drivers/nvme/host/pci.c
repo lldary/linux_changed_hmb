@@ -1998,14 +1998,21 @@ static int __nvme_alloc_host_mem(struct nvme_dev *dev, u64 preferred,
 		dma_addr_t dma_addr;
 
 		len = min_t(u64, chunk_size, preferred - size);
-		bufs[i] = dma_alloc_attrs(dev->dev, len, &dma_addr, GFP_KERNEL,
-					  DMA_ATTR_NO_KERNEL_MAPPING |
-						  DMA_ATTR_NO_WARN);
+		// bufs[i] = dma_alloc_attrs(dev->dev, len, &dma_addr, GFP_KERNEL,
+		// 			  DMA_ATTR_NO_KERNEL_MAPPING |
+		// 				  DMA_ATTR_NO_WARN);
+		/* -- HMB修改描述符表代码 -- */
+		bufs[i] = dma_alloc_attrs(
+			dev->dev, len, &dma_addr, GFP_KERNEL,
+			DMA_ATTR_NO_WARN); // 这里删除了不允许host映射的命令
 		if (!bufs[i])
 			break;
 
 		descs[i].addr = cpu_to_le64(dma_addr);
 		descs[i].size = cpu_to_le32(len / NVME_CTRL_PAGE_SIZE);
+		/* -- HMB修改描述符表代码 -- */
+		descs[i].v_addr = cpu_tole64(bufs[i]);
+
 		i++;
 	}
 
