@@ -1136,7 +1136,7 @@ struct nvme_host_mem_buf_desc {
 	__le32 size;
 	__u32 rsvd;
 	/* -- HMB 修改-- */
-	// __le64 v_addr; // 虚拟地址
+	__le64 v_addr; // 虚拟地址
 };
 
 struct nvme_create_cq {

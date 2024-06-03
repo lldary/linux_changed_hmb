@@ -2011,7 +2011,7 @@ static int __nvme_alloc_host_mem(struct nvme_dev *dev, u64 preferred,
 		descs[i].addr = cpu_to_le64(dma_addr);
 		descs[i].size = cpu_to_le32(len / NVME_CTRL_PAGE_SIZE);
 		/* -- HMB修改描述符表代码 -- */
-		// descs[i].v_addr = cpu_tole64(bufs[i]);
+		descs[i].v_addr = cpu_to_le64(bufs[i]);
 
 		i++;
 	}
