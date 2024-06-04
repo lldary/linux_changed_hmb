@@ -1047,20 +1047,21 @@ static inline void nvme_update_cq_head(struct nvme_queue *nvmeq)
 		nvmeq->cq_head = tmp;
 	}
 }
-
+/* 用于处理 NVMe 完成队列（Completion Queue，CQ）的函数 */
 static inline int nvme_process_cq(struct nvme_queue *nvmeq)
 {
 	int found = 0;
 
-	while (nvme_cqe_pending(nvmeq)) {
-		found++;
+	while (nvme_cqe_pending(
+		nvmeq)) { // 检查完成队列中是否有待处理的条目。如果有，进入循环
+		found++; // 记录已处理的完成队列条目的数量
 		/*
 		 * load-load control dependency between phase and the rest of
 		 * the cqe requires a full read memory barrier
 		 */
 		dma_rmb();
-		nvme_handle_cqe(nvmeq, nvmeq->cq_head);
-		nvme_update_cq_head(nvmeq);
+		nvme_handle_cqe(nvmeq, nvmeq->cq_head); // 处理当前完成队列条目
+		nvme_update_cq_head(nvmeq); // 更新队列指针
 	}
 
 	if (found)
