@@ -1065,7 +1065,8 @@ static inline int nvme_process_cq(struct nvme_queue *nvmeq)
 	}
 
 	if (found)
-		nvme_ring_cq_doorbell(nvmeq);
+		nvme_ring_cq_doorbell(
+			nvmeq); // 通知 NVMe 控制器已处理完成队列中的条目
 	return found;
 }
 
