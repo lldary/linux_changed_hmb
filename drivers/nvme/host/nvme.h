@@ -577,6 +577,13 @@ static inline bool nvme_try_complete_req(struct request *req, __le16 status,
 	rq->status = le16_to_cpu(status) >> 1;
 	rq->result = result;
 	// 可能可以在这里插入copy环节
+	if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
+		// 这是一个读操作
+	} else if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
+		// 这是一个写操作
+		printk(KERN_DEBUG "nvme_try_complete_req:result = %lx %d\n",
+		       result.u64, __LINE__);
+	}
 	/* inject error when permitted by fault injection framework */
 	nvme_should_fail(req);
 	if (unlikely(blk_should_fake_timeout(req->q)))
