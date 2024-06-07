@@ -590,7 +590,7 @@ typedef MCPEntry *MCPEntryPtr;
 
 void *nvme_prp_to_virt(u64 prp);
 
-void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntryPtr head);
+void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head);
 
 /*
  * Fill in the status and result information from the CQE, and then figure out

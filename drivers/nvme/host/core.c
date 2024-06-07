@@ -346,24 +346,29 @@ void *nvme_prp_to_virt(u64 prp)
 	return phys_to_virt(prp);
 }
 
-void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntryPtr head)
+void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 {
 	void *vaddr;
 	size_t offset = 0;
 	size_t prp_entry_size = PAGE_SIZE;
 	int prp_list_index = 0;
-	MCPEntryPtr cur = head;
+	MCPEntry *cur = head;
 	size_t len =
 		le64_to_cpu(head->block_size) * le64_to_cpu(head->total_size);
 	uint16_t mcp_count = head->mcp_count;
 	size_t block_size = le64_to_cpu(head->block_size);
-	size_t remaining_len = (size_t)(cur->cdw12 & 0xFFFF) * block_size;
-	void *target_addr = (void *)cur->v_addr;
+	size_t remaining_len =
+		(size_t)(le32_to_cpu(cur->cdw12) & 0xFFFF) * block_size;
+	void *target_addr = (void *)le64_to_cpu(cur->v_addr);
 
 	u64 prp;
 	u64 *prp_list;
 	u64 prp1 = le64_to_cpu(cmd->rw.dptr.prp1);
 	u64 prp2 = le64_to_cpu(cmd->rw.dptr.prp2);
+	printk(KERN_ERR
+	       "nvme_prp_list_to_virt:headptr: %p blocksize: %lu total_size: %llu ori_block: %lu ori_data: %lu",
+	       head, block_size, le64_to_cpu(head->total_size),
+	       head->block_size, head->total_size);
 	head->block_size = prp1;
 	head->total_size = prp2;
 
@@ -371,14 +376,14 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntryPtr head)
 	vaddr = nvme_prp_to_virt(prp1);
 	if (!vaddr)
 		return NULL;
-
 	while (len > 0) {
 		size_t chunk_size = min(prp_entry_size, remaining_len);
 
 		// 处理vaddr + offset处的数据
-		printk(KERN_ERR
-		       "nvme_prp_list_to_virt: copy from %p to %p size: %lu remain_size: %lu",
-		       vaddr + offset, target_addr, chunk_size, len);
+		// printk(KERN_ERR
+		//        "nvme_prp_list_to_virt: copy from %p to %p size: %lu block_size: %lu remain_size: %lu mcp_remain_size: %lu",
+		//        vaddr + offset, target_addr, chunk_size, block_size, len,
+		//        remaining_len);
 		memmove(target_addr, vaddr, chunk_size); // 拷贝
 		remaining_len -= chunk_size;
 		len -= chunk_size;
@@ -392,8 +397,9 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntryPtr head)
 						     PAGE_SHIFT)
 						    << PAGE_SHIFT);
 			}
-			remaining_len = (cur->cdw12 & 0xFFFF) * block_size;
-			target_addr = (void *)cur->v_addr;
+			remaining_len =
+				(le32_to_cpu(cur->cdw12) & 0xFFFF) * block_size;
+			target_addr = (void *)le64_to_cpu(cur->v_addr);
 			mcp_count--;
 		}
 
@@ -438,17 +444,19 @@ void nvme_complete_rq(struct request *req)
 		} else if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
 			// 这是一个写操作
 			struct nvme_request *rq = nvme_req(req);
-			MCPEntryPtr head = (MCPEntryPtr)(rq->result.u64);
+			void *temp = rq->result.u64;
+			uint64_t ha = rq->result.u64;
+			MCPEntry *head = (MCPEntry *)((rq->result.u64));
 
 			printk(KERN_ERR
-			       "nvme_try_complete_req:write result = %llx %d\n",
-			       rq->result.u64, __LINE__);
+			       "nvme_try_complete_req:write result = %llx head = %p temp = %p ha = %lx line = %d\n",
+			       rq->result.u64, head, temp, ha, __LINE__);
 
 			// struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
 
 			// struct nvme_dev *dev = iod->nvmeq->dev;
 			if (rq->ctrl->hmpre != 0) {
-				nvme_prp_list_to_virt(rq->cmd, head);
+				nvme_prp_list_to_virt(rq->cmd, temp);
 			}
 		}
 		nvme_end_req(req);
