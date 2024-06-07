@@ -345,7 +345,7 @@ void *nvme_prp_to_virt(u64 prp)
 	// phys_addr_t phys_addr = (phys_addr_t)prp;
 	return phys_to_virt(prp);
 }
-
+/* 只支持prp格式 */
 void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 {
 	void *vaddr;
@@ -369,8 +369,8 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 	       "nvme_prp_list_to_virt:headptr: %llx blocksize: %lu total_size: %llu ori_block: %lu ori_data: %lu",
 	       head, block_size, le64_to_cpu(head->total_size),
 	       head->block_size, head->total_size);
-	head->block_size = prp1;
-	head->total_size = prp2;
+	// head->block_size = prp1;
+	// head->total_size = prp2;
 	if (block_size > 8192) {
 		printk(KERN_CRIT
 		       "nvme_prp_list_to_virt:headptr: %llx blocksize: %lu total_len: %llu ori_block: %lu ori_data: %lu",
