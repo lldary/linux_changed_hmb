@@ -563,6 +563,35 @@ static inline bool nvme_is_path_error(u16 status)
 	return (status & 0x700) == 0x300;
 }
 
+#define uint16_t unsigned short
+#define uint32_t unsigned int
+#define uint64_t unsigned long int
+
+/* -- MCP项（基于NvmeCmd添加虚拟地址） -- */
+typedef struct MCPEntry {
+	uint16_t opcode : 8;
+	uint16_t fuse : 2;
+	uint16_t mcp_count : 4; // 只有第一个项是非零，表示一共会有多少个MCPEntry
+	uint16_t psdt : 2;
+	uint16_t cid;
+	uint32_t nsid;
+	uint64_t v_addr;
+	uint64_t mptr;
+	uint64_t block_size;
+	uint64_t total_size;
+	uint32_t cdw10;
+	uint32_t cdw11;
+	uint32_t cdw12;
+	uint32_t cdw13;
+	uint32_t cdw14;
+	uint32_t cdw15;
+} MCPEntry;
+typedef MCPEntry *MCPEntryPtr;
+
+void *nvme_prp_to_virt(u64 prp);
+
+void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntryPtr head);
+
 /*
  * Fill in the status and result information from the CQE, and then figure out
  * if blk-mq will need to use IPI magic to complete the request, and if yes do
@@ -576,14 +605,6 @@ static inline bool nvme_try_complete_req(struct request *req, __le16 status,
 
 	rq->status = le16_to_cpu(status) >> 1;
 	rq->result = result;
-	// 可能可以在这里插入copy环节
-	if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
-		// 这是一个读操作
-	} else if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
-		// 这是一个写操作
-		printk(KERN_DEBUG "nvme_try_complete_req:result = %lx %d\n",
-		       result.u64, __LINE__);
-	}
 	/* inject error when permitted by fault injection framework */
 	nvme_should_fail(req);
 	if (unlikely(blk_should_fake_timeout(req->q)))
