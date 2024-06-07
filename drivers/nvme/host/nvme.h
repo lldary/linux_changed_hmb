@@ -565,7 +565,7 @@ static inline bool nvme_is_path_error(u16 status)
 
 #define uint16_t unsigned short
 #define uint32_t unsigned int
-#define uint64_t unsigned long int
+#define uint64_t unsigned long long int
 
 /* -- MCP项（基于NvmeCmd添加虚拟地址） -- */
 typedef struct MCPEntry {

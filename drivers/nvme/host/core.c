@@ -366,12 +366,18 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 	u64 prp1 = le64_to_cpu(cmd->rw.dptr.prp1);
 	u64 prp2 = le64_to_cpu(cmd->rw.dptr.prp2);
 	printk(KERN_ERR
-	       "nvme_prp_list_to_virt:headptr: %p blocksize: %lu total_size: %llu ori_block: %lu ori_data: %lu",
+	       "nvme_prp_list_to_virt:headptr: %llx blocksize: %lu total_size: %llu ori_block: %lu ori_data: %lu",
 	       head, block_size, le64_to_cpu(head->total_size),
 	       head->block_size, head->total_size);
 	head->block_size = prp1;
 	head->total_size = prp2;
-
+	if (block_size > 8192) {
+		printk(KERN_ERR
+		       "nvme_prp_list_to_virt:headptr: %llx blocksize: %lu total_len: %llu ori_block: %lu ori_data: %lu",
+		       head, block_size, len, head->block_size,
+		       head->total_size);
+		return NULL;
+	}
 	// Handle first PRP entry (prp1)
 	vaddr = nvme_prp_to_virt(prp1);
 	if (!vaddr)
@@ -380,10 +386,10 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 		size_t chunk_size = min(prp_entry_size, remaining_len);
 
 		// 处理vaddr + offset处的数据
-		// printk(KERN_ERR
-		//        "nvme_prp_list_to_virt: copy from %p to %p size: %lu block_size: %lu remain_size: %lu mcp_remain_size: %lu",
-		//        vaddr + offset, target_addr, chunk_size, block_size, len,
-		//        remaining_len);
+		printk(KERN_ERR
+		       "nvme_prp_list_to_virt: copy from %llx to %llx size: %lu block_size: %lu remain_size: %lu mcp_remain_size: %lu",
+		       vaddr + offset, target_addr, chunk_size, block_size, len,
+		       remaining_len);
 		memmove(target_addr, vaddr, chunk_size); // 拷贝
 		remaining_len -= chunk_size;
 		len -= chunk_size;
@@ -444,13 +450,33 @@ void nvme_complete_rq(struct request *req)
 		} else if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
 			// 这是一个写操作
 			struct nvme_request *rq = nvme_req(req);
-			void *temp = rq->result.u64;
+			void *temp = NULL;
 			uint64_t ha = rq->result.u64;
 			MCPEntry *head = (MCPEntry *)((rq->result.u64));
+			temp = (void *)ha;
 
 			printk(KERN_ERR
-			       "nvme_try_complete_req:write result = %llx head = %p temp = %p ha = %lx line = %d\n",
-			       rq->result.u64, head, temp, ha, __LINE__);
+			       "nvme_try_complete_req:write result = %llx head = %p temp = %p %llx ha = %llx line = %d size: temp %u ha %u\n",
+			       rq->result.u64, head, temp, (uint64_t)temp, ha,
+			       __LINE__, sizeof(temp), sizeof(ha));
+			// printk(KERN_ERR "temp = %p %llx ha = %llx &ha = %p",
+			//        temp, *(uint64_t *)temp, ha, &ha);
+			// ha = 0x7fffffff;
+			// temp = (void *)ha;
+			// printk(KERN_ERR "temp = %p %llx ha = %llx &ha = %p",
+			//        temp, temp, ha, &ha);
+			// ha = 0x10000000;
+			// temp = (void *)ha;
+			// printk(KERN_ERR "temp = %p %llx ha = %llx &ha = %p",
+			//        temp, temp, ha, &ha);
+			// ha = 0xffffffff;
+			// temp = (void *)ha;
+			// printk(KERN_ERR "temp = %p %llx ha = %llx &ha = %p",
+			//        temp, temp, ha, &ha);
+			// ha = 0x100000000;
+			// temp = (void *)ha;
+			// printk(KERN_ERR "temp = %p %llx ha = %llx &ha = %p",
+			//        temp, temp, ha, &ha);
 
 			// struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
 
