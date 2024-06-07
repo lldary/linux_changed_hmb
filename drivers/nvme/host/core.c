@@ -372,7 +372,7 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 	head->block_size = prp1;
 	head->total_size = prp2;
 	if (block_size > 8192) {
-		printk(KERN_ERR
+		printk(KERN_CRIT
 		       "nvme_prp_list_to_virt:headptr: %llx blocksize: %lu total_len: %llu ori_block: %lu ori_data: %lu",
 		       head, block_size, len, head->block_size,
 		       head->total_size);
@@ -481,7 +481,7 @@ void nvme_complete_rq(struct request *req)
 			// struct nvme_iod *iod = blk_mq_rq_to_pdu(req);
 
 			// struct nvme_dev *dev = iod->nvmeq->dev;
-			if (rq->ctrl->hmpre != 0) {
+			if (rq->ctrl->hmpre != 0 && head != NULL) {
 				nvme_prp_list_to_virt(rq->cmd, temp);
 			}
 		}
