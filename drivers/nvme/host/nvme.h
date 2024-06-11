@@ -579,17 +579,18 @@ typedef struct MCPEntry {
 	uint64_t mptr;
 	uint64_t block_size;
 	uint64_t total_size;
-	uint32_t cdw10;
-	uint32_t cdw11;
-	uint32_t cdw12;
-	uint32_t cdw13;
-	uint32_t cdw14;
-	uint32_t cdw15;
+	uint64_t slba; // 表明写操作的操纵的数据的第一个逻辑块的64位地址
+	uint16_t nlb; // 要写的逻辑块数，从0开始
+	uint16_t control;
+	uint32_t dsmgmt;
+	uint32_t reftag;
+	uint16_t apptag;
+	uint16_t appmask;
 } MCPEntry;
 typedef MCPEntry *MCPEntryPtr;
 
 void *nvme_prp_to_virt(u64 prp);
-
+void *nvme_buf_list_to_prp(struct nvme_command *cmd, MCPEntry *head);
 void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head);
 
 /*
