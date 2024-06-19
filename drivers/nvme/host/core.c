@@ -495,10 +495,10 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 	u64 *prp_list;
 	u64 prp1 = le64_to_cpu(cmd->rw.dptr.prp1);
 	u64 prp2 = le64_to_cpu(cmd->rw.dptr.prp2);
-	printk(KERN_ERR
-	       "nvme_prp_list_to_virt: headptr: %llx blocksize: %lu total_size: %llu ori_block: %lu ori_data: %lu",
-	       head, block_size, le64_to_cpu(head->total_size),
-	       head->block_size, head->total_size);
+	// printk(KERN_ERR
+	//        "nvme_prp_list_to_virt: headptr: %llx blocksize: %lu total_size: %llu ori_block: %lu ori_data: %lu",
+	//        head, block_size, le64_to_cpu(head->total_size),
+	//        head->block_size, head->total_size);
 	// head->block_size = prp1;
 	// head->total_size = prp2;
 	if (block_size > 8192) {
@@ -516,10 +516,10 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 		size_t chunk_size = min(prp_entry_size, remaining_len);
 
 		// 处理vaddr + offset处的数据
-		printk(KERN_ERR
-		       "nvme_prp_list_to_virt: copy from %llx to %llx size: %lu block_size: %lu remain_size: %lu mcp_remain_size: %lu",
-		       vaddr + offset, target_addr, chunk_size, block_size, len,
-		       remaining_len);
+		// printk(KERN_ERR
+		//        "nvme_prp_list_to_virt: copy from %llx to %llx size: %lu block_size: %lu remain_size: %lu mcp_remain_size: %lu",
+		//        vaddr + offset, target_addr, chunk_size, block_size, len,
+		//        remaining_len);
 		memmove(target_addr, vaddr, chunk_size); // 拷贝
 		remaining_len -= chunk_size;
 		len -= chunk_size;
