@@ -1035,10 +1035,10 @@ void *nvme_buf_list_to_prp(struct nvme_command *cmd, MCPEntry *head)
 	int will_copy_ = 0;
 	// int test_flag = 0;
 	// int i = 0;
-	printk(KERN_ERR
-	       "nvme_buf_list_to_prp: headptr: %llx blocksize: %zu total_size: %llu len:%lu mcp_count: %u",
-	       (u64)head, block_size, le64_to_cpu(head->total_size), len,
-	       mcp_count);
+	// printk(KERN_ERR
+	//        "nvme_buf_list_to_prp: headptr: %llx blocksize: %zu total_size: %llu len:%lu mcp_count: %u",
+	//        (u64)head, block_size, le64_to_cpu(head->total_size), len,
+	//        mcp_count);
 	// head->block_size = prp1;
 	// head->total_size = prp2;
 	if (block_size > 8192) {
@@ -1061,13 +1061,13 @@ void *nvme_buf_list_to_prp(struct nvme_command *cmd, MCPEntry *head)
 			u_int8_t *tmp2_ptr =
 				(u_int8_t *)(le64_to_cpu(cur->v_addr) +
 					     ptr_offset);
-			printk(KERN_ERR
-			       "nvme_prp: from %llx to %llx size: %zu mcp_count: %u copy_remain_size:%zu remain_lenght: %zu dst:[%llx,%llx) src:[%llx,%llx)",
-			       (u64)(le64_to_cpu(cur->v_addr) + ptr_offset),
-			       (u64)(vaddr + offset), chunk_size, mcp_count,
-			       remaining_len, len, (u64)tmp1_ptr,
-			       (u64)tmp1_ptr + chunk_size, (u64)tmp2_ptr,
-			       (u64)tmp2_ptr + chunk_size);
+			// printk(KERN_ERR
+			//        "nvme_prp: from %llx to %llx size: %zu mcp_count: %u copy_remain_size:%zu remain_lenght: %zu dst:[%llx,%llx) src:[%llx,%llx)",
+			//        (u64)(le64_to_cpu(cur->v_addr) + ptr_offset),
+			//        (u64)(vaddr + offset), chunk_size, mcp_count,
+			//        remaining_len, len, (u64)tmp1_ptr,
+			//        (u64)tmp1_ptr + chunk_size, (u64)tmp2_ptr,
+			//        (u64)tmp2_ptr + chunk_size);
 			// printk(KERN_ERR "nvme_prp: src[%lx,%lx) dst:[%lx,%lx)",
 			//        tmp1_ptr, tmp1_ptr + chunk_size, tmp2_ptr,
 			//        tmp2_ptr + chunk_size);
@@ -1188,7 +1188,7 @@ void *nvme_buf_list_to_prp(struct nvme_command *cmd, MCPEntry *head)
 			//        (u64)vaddr);
 		}
 	}
-	printk(KERN_ERR "nvme_buf_list_to_prp: over:%llx", (u64)vaddr);
+	// printk(KERN_ERR "nvme_buf_list_to_prp: over:%llx", (u64)vaddr);
 	return vaddr;
 }
 /* 只支持prp格式 */
@@ -1211,10 +1211,10 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 	u64 *prp_list;
 	u64 prp1 = le64_to_cpu(cmd->rw.dptr.prp1);
 	u64 prp2 = le64_to_cpu(cmd->rw.dptr.prp2);
-	printk(KERN_ERR
-	       "nvme_prp_list_to_virt: headptr: %llx blocksize: %zu total_size: %llu ori_block: %llu ori_data: %llu",
-	       (u64)head, block_size, le64_to_cpu(head->total_size),
-	       head->block_size, head->total_size);
+	// printk(KERN_ERR
+	//        "nvme_prp_list_to_virt: headptr: %llx blocksize: %zu total_size: %llu ori_block: %llu ori_data: %llu",
+	//        (u64)head, block_size, le64_to_cpu(head->total_size),
+	//        head->block_size, head->total_size);
 	// head->block_size = prp1;
 	// head->total_size = prp2;
 	if (block_size > 8192) {
@@ -1277,7 +1277,7 @@ void *nvme_prp_list_to_virt(struct nvme_command *cmd, MCPEntry *head)
 			remain_page_size = prp_entry_size;
 		}
 	}
-	printk(KERN_ERR "nvme_prp_list_to_virt: over:%llx", (u64)vaddr);
+	// printk(KERN_ERR "nvme_prp_list_to_virt: over:%llx", (u64)vaddr);
 	return vaddr;
 }
 
@@ -1318,8 +1318,7 @@ static inline void nvme_handle_cqe(struct nvme_queue *nvmeq, u16 idx)
 			// blk_status_t status =
 			// 	nvme_error_status(nvme_req(req)->status);
 			temp = (void *)ha;
-			if (rq->ctrl->hmpre != 0 && head != NULL &&
-			    rq->status == 0) {
+			if (rq->ctrl->hmpre != 0 && head != NULL) {
 				nvme_buf_list_to_prp(rq->cmd, temp);
 			}
 		} else if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
@@ -1349,8 +1348,7 @@ static inline void nvme_handle_cqe(struct nvme_queue *nvmeq, u16 idx)
 			// blk_status_t status =
 			// 	nvme_error_status(nvme_req(req)->status);
 			temp = (void *)ha;
-			if (rq->ctrl->hmpre != 0 && head != NULL &&
-			    rq->status == 0) {
+			if (rq->ctrl->hmpre != 0 && head != NULL) {
 				nvme_buf_list_to_prp(rq->cmd, temp);
 			}
 		} else if ((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
